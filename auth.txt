@@ -1,0 +1,26 @@
+	// Suche nach dem Authorization Header
+	authHeader := req.Header.Get("Authorization")
+
+	if authHeader == "" {
+		conn.Write([]byte("HTTP/1.1 401 Unauthorized\r\n"))
+		conn.Write([]byte(`WWW-Authenticate: Basic realm="Restricted"` + "\r\n"))
+		conn.Write([]byte("\r\n"))
+		return
+	}
+
+	payload, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(strings.TrimSpace(authHeader), "Basic "))
+	if err != nil || len(strings.SplitN(string(payload), ":", 2)) != 2 {
+		conn.Write([]byte("HTTP/1.1 401 Unauthorized\r\n"))
+		conn.Write([]byte(`WWW-Authenticate: Basic realm="Restricted"` + "\r\n"))
+		conn.Write([]byte("\r\n"))
+		return
+	}
+
+	pair := strings.SplitN(string(payload), ":", 2)
+	log.Println(pair[0]+""+pair[1], username+""+password)
+	if pair[0] != username || pair[1] != password {
+		conn.Write([]byte("HTTP/1.1 401 Unauthorized\r\n"))
+		conn.Write([]byte(`WWW-Authenticate: Basic realm="Restricted"` + "\r\n"))
+		conn.Write([]byte("\r\n"))
+		return
+	}
